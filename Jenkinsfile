@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        node {
+            label 'windows'
+        }
+    }
     
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
@@ -18,48 +22,50 @@ pipeline {
         
         stage('Build') {
             steps {
-                bat '''
-                    @echo off
-                    echo Maven version:
-                    "%MAVEN_HOME%\\bin\\mvn" --version
-                    echo Building project...
-                    "%MAVEN_HOME%\\bin\\mvn" clean package
-                '''
+                script {
+                    def mvnCmd = "C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd"
+                    bat """
+                        echo Maven version:
+                        "${mvnCmd}" --version
+                        echo Building project...
+                        "${mvnCmd}" clean package
+                    """
+                }
             }
         }
         
         stage('Test') {
             steps {
-                bat '''
-                    @echo off
-                    echo Running tests...
-                    "%MAVEN_HOME%\\bin\\mvn" test
-                '''
+                script {
+                    def mvnCmd = "C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd"
+                    bat """
+                        echo Running tests...
+                        "${mvnCmd}" test
+                    """
+                }
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                bat '''
-                    @echo off
+                bat """
                     echo Building Docker image...
                     docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
                     docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest
-                '''
+                """
             }
         }
         
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat '''
-                        @echo off
+                    bat """
                         echo Logging into Docker Hub...
                         echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
                         echo Pushing Docker images...
                         docker push %DOCKER_IMAGE%:%DOCKER_TAG%
                         docker push %DOCKER_IMAGE%:latest
-                    '''
+                    """
                 }
             }
         }
