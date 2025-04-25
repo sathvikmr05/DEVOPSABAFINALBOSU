@@ -16,7 +16,7 @@ pipeline {
         
         stage('Build') {
             steps {
-                sh '''
+                bat '''
                     echo "Maven version:"
                     mvn --version
                     echo "Building project..."
@@ -27,7 +27,7 @@ pipeline {
         
         stage('Test') {
             steps {
-                sh '''
+                bat '''
                     echo "Running tests..."
                     mvn test
                 '''
@@ -36,7 +36,7 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                sh '''
+                bat '''
                     echo "Building Docker image..."
                     docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
                     docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
@@ -47,7 +47,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh '''
+                    bat '''
                         echo "Logging into Docker Hub..."
                         echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
                         echo "Pushing Docker images..."
