@@ -5,6 +5,8 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = 'sathwikpadmanabha/devopsfinal'
         DOCKER_TAG = "${BUILD_NUMBER}"
+        MAVEN_HOME = 'C:\\Program Files\\Apache\\maven'
+        PATH = "${MAVEN_HOME}\\bin;${env.PATH}"
     }
     
     stages {
@@ -16,30 +18,33 @@ pipeline {
         
         stage('Build') {
             steps {
-                powershell '''
-                    Write-Host "Maven version:"
-                    mvn --version
-                    Write-Host "Building project..."
-                    mvn clean package
+                bat '''
+                    @echo off
+                    echo Maven version:
+                    "%MAVEN_HOME%\\bin\\mvn" --version
+                    echo Building project...
+                    "%MAVEN_HOME%\\bin\\mvn" clean package
                 '''
             }
         }
         
         stage('Test') {
             steps {
-                powershell '''
-                    Write-Host "Running tests..."
-                    mvn test
+                bat '''
+                    @echo off
+                    echo Running tests...
+                    "%MAVEN_HOME%\\bin\\mvn" test
                 '''
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                powershell '''
-                    Write-Host "Building Docker image..."
-                    docker build -t $env:DOCKER_IMAGE:$env:DOCKER_TAG .
-                    docker tag $env:DOCKER_IMAGE:$env:DOCKER_TAG $env:DOCKER_IMAGE:latest
+                bat '''
+                    @echo off
+                    echo Building Docker image...
+                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
+                    docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest
                 '''
             }
         }
@@ -47,12 +52,13 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    powershell '''
-                        Write-Host "Logging into Docker Hub..."
-                        $env:DOCKER_PASSWORD | docker login -u $env:DOCKER_USERNAME --password-stdin
-                        Write-Host "Pushing Docker images..."
-                        docker push $env:DOCKER_IMAGE:$env:DOCKER_TAG
-                        docker push $env:DOCKER_IMAGE:latest
+                    bat '''
+                        @echo off
+                        echo Logging into Docker Hub...
+                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                        echo Pushing Docker images...
+                        docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                        docker push %DOCKER_IMAGE%:latest
                     '''
                 }
             }
