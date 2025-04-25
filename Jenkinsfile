@@ -16,12 +16,9 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat """
-                    echo Maven version:
-                    mvn --version
-                    echo Building project...
-                    mvn clean package
-                """
+                bat 'echo JAVA_HOME=%JAVA_HOME%'
+                bat 'echo Path=%PATH%'
+
             }
         }
 
