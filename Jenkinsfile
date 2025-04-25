@@ -39,15 +39,16 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                bat """
-                    echo Building Docker image...
-                    docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} .
-                    docker tag ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ${env.DOCKER_IMAGE}:latest
-                """
-            }
-        }
+       stage('Build Docker Image') {
+    steps {
+        bat """
+            set PATH=C:\\Program Files\\Docker\\Docker\\resources\\bin;%PATH%
+            docker build -t ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} .
+            docker tag ${env.DOCKER_IMAGE}:${env.DOCKER_TAG} ${env.DOCKER_IMAGE}:latest
+        """
+    }
+}
+
 
         stage('Push to Docker Hub') {
             steps {
