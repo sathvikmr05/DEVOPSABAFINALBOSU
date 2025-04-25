@@ -5,12 +5,6 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = 'sathwikpadmanabha/devopsfinal'
         DOCKER_TAG = "${BUILD_NUMBER}"
-        MAVEN_HOME = 'C:\\Program Files\\Apache\\maven'
-        PATH = "${MAVEN_HOME}\\bin;${env.PATH}"
-    }
-    
-    tools {
-        maven 'Maven 3.8.4'
     }
     
     stages {
