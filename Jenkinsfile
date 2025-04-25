@@ -1,36 +1,39 @@
 pipeline {
     agent any
-
+    
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = 'sathwikpadmanabha/devopsfinal'
         DOCKER_TAG = "${BUILD_NUMBER}"
     }
-
+    
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
+        
         stage('Build') {
             steps {
-                bat 'echo JAVA_HOME=%JAVA_HOME%'
-                bat 'echo Path=%PATH%'
-
+                bat '''
+                    echo "Maven version:"
+                    mvn --version
+                    echo "Building project..."
+                    mvn clean package
+                '''
             }
         }
-
+        
         stage('Test') {
             steps {
-                bat """
-                    echo Running tests...
+                bat '''
+                    echo "Running tests..."
                     mvn test
-                """
+                '''
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 bat """
@@ -40,31 +43,28 @@ pipeline {
                 """
             }
         }
-
+        
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat """
                         echo Logging into Docker Hub...
                         echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                        echo Pushing Docker images...
                         docker push %DOCKER_IMAGE%:%DOCKER_TAG%
                         docker push %DOCKER_IMAGE%:latest
-                        docker logout
                     """
                 }
             }
         }
     }
-
+    
     post {
         always {
             emailext (
-                subject: "Pipeline Status: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<p>Pipeline Status: ${currentBuild.currentResult}</p>
-                         <p>Job: ${env.JOB_NAME} #${env.BUILD_NUMBER}</p>
-                         <p>Check console output at <a href='${BUILD_URL}'>${BUILD_URL}</a></p>""",
-                to: 'sathwikpadmanabha@gmail.com'
+                subject: "Pipeline Status: ${currentBuild.fullDisplayName}",
+                body: """<p>Pipeline Status: ${currentBuild.result}</p>
+                <p>Check console output at <a href='${BUILD_URL}'>${BUILD_URL}</a></p>""",
+                to: 'your-email@gmail.com' // <--- replace with your actual email
             )
         }
     }
