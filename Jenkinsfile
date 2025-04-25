@@ -36,24 +36,23 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                bat '''
-                    echo "Building Docker image..."
-                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
-                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
-                '''
+                bat """
+                    echo Building Docker image...
+                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
+                    docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest
+                """
             }
         }
         
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat '''
-                        echo "Logging into Docker Hub..."
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                        echo "Pushing Docker images..."
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_IMAGE}:latest
-                    '''
+                    bat """
+                        echo Logging into Docker Hub...
+                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                        docker push %DOCKER_IMAGE%:%DOCKER_TAG%
+                        docker push %DOCKER_IMAGE%:latest
+                    """
                 }
             }
         }
@@ -64,10 +63,9 @@ pipeline {
             emailext (
                 subject: "Pipeline Status: ${currentBuild.fullDisplayName}",
                 body: """<p>Pipeline Status: ${currentBuild.result}</p>
-                <p>Check console output at &QUOT;<a href='${BUILD_URL}'>${BUILD_URL}</a>&QUOT;</p>""",
-                recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-                to: '${DEFAULT_RECIPIENTS}'
+                <p>Check console output at <a href='${BUILD_URL}'>${BUILD_URL}</a></p>""",
+                to: 'sathwikpadmanabha@gmail.com' 
             )
         }
     }
-} 
+}
