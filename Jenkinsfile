@@ -5,8 +5,6 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_IMAGE = 'sathwikpadmanabha/devopsfinal'
         DOCKER_TAG = "${BUILD_NUMBER}"
-        MAVEN_HOME = 'C:\\Program Files\\Apache\\maven'
-        PATH = "${MAVEN_HOME}\\bin;${env.PATH}"
     }
     
     stages {
@@ -18,50 +16,44 @@ pipeline {
         
         stage('Build') {
             steps {
-                script {
-                    def mvnCmd = "C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd"
-                    bat """
-                        echo Maven version:
-                        "${mvnCmd}" --version
-                        echo Building project...
-                        "${mvnCmd}" clean package
-                    """
-                }
+                sh '''
+                    echo "Maven version:"
+                    mvn --version
+                    echo "Building project..."
+                    mvn clean package
+                '''
             }
         }
         
         stage('Test') {
             steps {
-                script {
-                    def mvnCmd = "C:\\Program Files\\Apache\\maven\\bin\\mvn.cmd"
-                    bat """
-                        echo Running tests...
-                        "${mvnCmd}" test
-                    """
-                }
+                sh '''
+                    echo "Running tests..."
+                    mvn test
+                '''
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                bat """
-                    echo Building Docker image...
-                    docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .
-                    docker tag %DOCKER_IMAGE%:%DOCKER_TAG% %DOCKER_IMAGE%:latest
-                """
+                sh '''
+                    echo "Building Docker image..."
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
+                '''
             }
         }
         
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat """
-                        echo Logging into Docker Hub...
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                        echo Pushing Docker images...
-                        docker push %DOCKER_IMAGE%:%DOCKER_TAG%
-                        docker push %DOCKER_IMAGE%:latest
-                    """
+                    sh '''
+                        echo "Logging into Docker Hub..."
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        echo "Pushing Docker images..."
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker push ${DOCKER_IMAGE}:latest
+                    '''
                 }
             }
         }
