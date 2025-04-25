@@ -51,18 +51,20 @@ pipeline {
 
 
         stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat """
-                        echo Logging into Docker Hub...
-                        echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
-                        docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
-                        docker push ${env.DOCKER_IMAGE}:latest
-                        docker logout
-                    """
-                }
-            }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+            bat """
+                set PATH=C:\\Program Files\\Docker\\Docker\\resources\\bin;%PATH%
+                echo Logging into Docker Hub...
+                echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin
+                docker push ${env.DOCKER_IMAGE}:${env.DOCKER_TAG}
+                docker push ${env.DOCKER_IMAGE}:latest
+                docker logout
+            """
         }
+    }
+}
+
     }
 
     post {
