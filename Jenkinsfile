@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = 'sathwikpadmanabha/devopsfinal'
+        DOCKER_IMAGE = 'sathvikmr46/devopsfinal'
         DOCKER_TAG = "${BUILD_NUMBER}"
     }
 
